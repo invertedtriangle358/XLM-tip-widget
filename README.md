@@ -36,4 +36,5 @@ A lightweight, zero-dependency Stellar Lumens (XLM) tipping and payment button t
 
 ```
 const destination = "YOUR_STELLAR_ADDRESS_HERE";
-
+```
+[MIT License](LICENSE)
