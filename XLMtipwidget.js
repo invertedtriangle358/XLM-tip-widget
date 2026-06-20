@@ -26,7 +26,7 @@ window.XLMButton = {
                 return;
             }
 
-            const memo = "Sent by your site";
+            const memo = config.memo || "Sent by your site";
 
             const stellarUri =
                 `web+stellar:pay?destination=${destination}&amount=${amount}&memo=${encodeURIComponent(memo)}&memo_type=MEMO_TEXT`;
