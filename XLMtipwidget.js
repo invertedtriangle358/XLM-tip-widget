@@ -1,20 +1,3 @@
-<div style="font-family: sans-serif; max-width: 300px; margin: 20px auto; text-align: center; border: 1px solid #eee; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #fff;">
-    <div style="margin-bottom: 15px; text-align: left;">
-        <label for="stellar-amount" style="font-size: 14px; color: #555; display: block; margin-bottom: 5px; font-weight: bold;">Amount XLM</label>
-        <input type="number" id="stellar-amount" value="1" min="0" step="1" style="width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
-    </div>
-    
-    <button id="stellar-pay-btn" style="background-color: #0866ff; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
-        Send a tip with Lumens
-    </button>
-    
-    <div id="stellar-error-msg" style="color: red; font-size: 12px; margin-top: 10px; display: none;"></div>
-    
-    <div id="qrcode-container" style="margin-top: 15px; display: none;">
-        <img id="qrcode-img" src="" alt="QR Code" style="border: 1px solid #ccc; padding: 10px; border-radius: 8px; width: 200px; height: 200px;">
-    </div>
-</div>
-
 <script>
 (() => {
     const btn = document.getElementById('stellar-pay-btn');
@@ -40,7 +23,7 @@
         }
 
         // memo up to 28 characters
-        const memo = "Tip"; 
+        const memo = "Sent bu your site"; 
         
         const stellarUri = `web+stellar:pay?destination=${destination}&amount=${amount}&memo=${encodeURIComponent(memo)}&memo_type=MEMO_TEXT`;
         const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
