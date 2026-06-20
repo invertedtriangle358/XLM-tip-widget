@@ -1,3 +1,8 @@
+window.XLMButton = {
+  init(options) {
+    const destination = options.destination;
+    const amount = options.amount;
+
 <script>
 (() => {
     const btn = document.getElementById('stellar-pay-btn');
@@ -44,3 +49,6 @@
     });
 })();
 </script>
+
+  }
+};
