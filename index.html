@@ -23,7 +23,7 @@
     btn.addEventListener('click', async () => {
         const destination = "YOUR_STELLAR_ADDRESS_HERE";
         const amount = amountInput.value || "1"; 
-        const memo = "StellarTest"; 
+        const memo = "Send to your site."; 
 
         const stellarUri = `web+stellar:pay?destination=${destination}&amount=${amount}&memo=${encodeURIComponent(memo)}&memo_type=MEMO_TEXT`;
         const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
