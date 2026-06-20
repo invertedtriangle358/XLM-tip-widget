@@ -13,7 +13,7 @@
         errorDiv.innerText = "";
         qrcodeContainer.style.display = "none";
 
-        const destination = "YOUR_STELLAR_ADDRESS...."; 
+        const destination = config.destination; 
         
         const amount = amountInput.value; 
         if (!amount || parseFloat(amount) <= 0) {
