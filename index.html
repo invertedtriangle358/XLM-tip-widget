@@ -22,7 +22,11 @@
 
     btn.addEventListener('click', async () => {
         const destination = "YOUR_STELLAR_ADDRESS_HERE";
-        const amount = amountInput.value || "1"; 
+        const amount = amountInput.value;
+        if (!amount || Number(amount) <= 0) {
+            alert("Enter a valid amount");
+            return;
+        }
         const memo = "Send to your site."; 
 
         const stellarUri = `web+stellar:pay?destination=${destination}&amount=${amount}&memo=${encodeURIComponent(memo)}&memo_type=MEMO_TEXT`;
