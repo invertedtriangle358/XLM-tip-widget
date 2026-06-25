@@ -1,111 +1,92 @@
- <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.js"></script>
-      
-<style>
-.xlm-pay-amount {
-    padding: 10px;
-    width: 250px;
-    margin-bottom: 10px;
-    box-sizing: border-box;
-}
-
-.xlm-pay-btn {
-    background-color: #0866ff;
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    font-size: 16px;
-    border-radius: 8px;
-    cursor: pointer;
-    width: 250px;
-    font-weight: bold;
-}
-
-.xlm-pay-qrcode {
-    margin-top: 15px;
-    display: none;
-    border: 1px solid #ccc;
-    padding: 10px;
-    border-radius: 8px;
-    width: 200px;
-    height: 200px;
-    margin-left: auto;
-    margin-right: auto;
-}
-</style>
-<input
-    id="stellar-amount"
-    class="xlm-pay-amount"
-    type="text"
-    inputmode="decimal"
-    placeholder="Amount XLM"
+<button
+    id="stellar-pay-btn"
+    style="
+        background-color: #0866ff;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+        font-weight: bold;
+    "
 >
-<button id="stellar-pay-btn" class="xlm-pay-btn">
-    Send XLM
+    Send a tip with Lumens
 </button>
-<canvas id="qrcode-canvas" class="xlm-pay-qrcode"></canvas>
-      
+
+<div
+    id="stellar-error-msg"
+    style="
+        color: red;
+        font-size: 12px;
+        margin-top: 10px;
+        display: none;
+    "
+></div>
+
+<div
+    id="qrcode-container"
+    style="
+        margin-top: 15px;
+        display: none;
+    "
+>
+    <img
+        id="qrcode-img"
+        src=""
+        alt="QR Code"
+        style="
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 8px;
+            width: 200px;
+            height: 200px;
+        "
+    >
+</div>
+
 <script>
 (() => {
-    const DESTINATION = "YOUR_STELLAR_ADDRESS_HERE";
-    const MEMO_TEXT = "Tip";
-    const QR_SIZE = 200;
-    const btn = document.getElementById("stellar-pay-btn");
-    const amountInput = document.getElementById("stellar-amount");
-    const canvas = document.getElementById("qrcode-canvas");
+    const btn = document.getElementById('stellar-pay-btn');
+    const amountInput = document.getElementById('stellar-amount');
+    const qrcodeContainer = document.getElementById('qrcode-container');
+    const qrcodeImg = document.getElementById('qrcode-img');
+    const errorDiv = document.getElementById('stellar-error-msg');
 
+    if (!btn || !amountInput || !qrcodeContainer || !qrcodeImg || !errorDiv) return;
 
-    if (!btn || !amountInput || !canvas) {
-        return;
-    }
-    function isValidXlmAmount(value) {
-        if (!/^(0|[1-9]\d*)(\.\d{1,7})?$/.test(value)) {
-            return false;
-        }
+    btn.addEventListener('click', () => {
+        errorDiv.style.display = "none";
+        errorDiv.innerText = "";
+        qrcodeContainer.style.display = "none";
 
-        if (value === "0") {
-            return false;
-        }
-
-        return true;
-    }
-    btn.addEventListener("click", async () => {
-        if (
-            !DESTINATION ||
-            DESTINATION === "YOUR_STELLAR_ADDRESS_HERE"
-        ) {
-            alert("Please set Stellar address");
+        const destination = "YOUR_STELLAR_ADDRESS_HERE"; 
+        
+        const amount = amountInput.value; 
+        if (!amount || parseFloat(amount) <= 0) {
+            errorDiv.innerText = "Error:Enter a number greater than 0";
+            errorDiv.style.display = "block";
             return;
         }
-        const amount = amountInput.value.trim();
-        if (!isValidXlmAmount(amount)) {
-            alert("Enter a valid XLM amount");
-            return;
-        }
-        const stellarUri =
-        `web+stellar:pay?destination=${DESTINATION}&amount=${amount}&memo=${encodeURIComponent(MEMO_TEXT)}&memo_type=MEMO_TEXT`;
-        const isMobile =
-        /Android|iPhone|iPad/i.test(navigator.userAgent);
+
+        // memo up to 28 characters
+        const memo = "Tip"; 
+        
+        const stellarUri = `web+stellar:pay?destination=${destination}&amount=${amount}&memo=${encodeURIComponent(memo)}&memo_type=MEMO_TEXT`;
+        const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+
         if (isMobile) {
-            canvas.style.display = "none";
-            setTimeout(() => {
-                window.location.assign(stellarUri);
-            }, 100);
+            window.location.href = stellarUri;
         } else {
             try {
-                canvas.style.display = "none";
-                await QRCode.toCanvas(
-                    canvas,
-                    stellarUri,
-                    {
-                        width: QR_SIZE
-                    }
-                );
-                canvas.style.display = "block";
+                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(stellarUri)}`;
+                qrcodeImg.src = qrUrl;
+                qrcodeContainer.style.display = "block"; 
             } catch (err) {
-                console.error(
-                    "Failed to generate QR code:",
-                    err
-                );
+                errorDiv.innerText = "failed gen QR";
+                errorDiv.style.display = "block";
+                console.error(err);
             }
         }
     });
