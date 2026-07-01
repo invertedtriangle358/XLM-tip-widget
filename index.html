@@ -1,60 +1,66 @@
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5/build/qrcode.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5/build/qrcode.min.js"></script>
 
-<div style="font-family: sans-serif; max-width: 300px; margin: 20px auto; text-align: center; border: 1px solid #eee; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-    <div style="margin-bottom: 15px; text-align: left;">
-        <label for="stellar-amount" style="font-size: 14px; color: #555; display: block; margin-bottom: 5px; font-weight: bold;">Ammount XLM</label>
-        <input type="number" id="stellar-amount" value="1" min="0.0000001" step="any" style="width: 100%; padding: 10px; font-size: 16px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box;">
-    </div>
-    
-    <button id="stellar-pay-btn" style="background-color: #0866ff; color: white; border: none; padding: 12px 24px; font-size: 16px; border-radius: 8px; cursor: pointer; width: 100%; font-weight: bold;">
-        Sent XLM
-    </button>
-    <canvas id="qrcode-canvas" style="margin-top: 15px; display: none; border: 1px solid #ccc; padding: 10px; border-radius: 8px; width: 200px; height: 200px; margin-left: auto; margin-right: auto;"></canvas>
+<div class="xlm-box" data-destination="YOUR_STELLAR_ADDRESS_HERE" data-memo="Tip">
+  <input class="xlm-amount" inputmode="decimal" value="1" placeholder="XLM amount">
+  <button class="xlm-btn">Send XLM</button>
+  <canvas class="xlm-qr" hidden></canvas>
+  <div class="xlm-msg"></div>
 </div>
+
+<style>
+.xlm-box{font:14px sans-serif;max-width:300px;margin:20px auto;text-align:center}
+.xlm-box input,.xlm-box button{box-sizing:border-box;width:100%;padding:10px;margin:6px 0;border-radius:6px}
+.xlm-box input{border:1px solid #ccc}
+.xlm-box button{border:0;background:#111;color:#fff;cursor:pointer}
+.xlm-qr{margin-top:12px}
+.xlm-msg{color:#b00020}
+</style>
 
 <script>
 (() => {
-    const btn = document.getElementById('stellar-pay-btn');
-    const amountInput = document.getElementById('stellar-amount');
-    const qrcodeContainer = document.getElementById('qrcode-container');
-    const qrcodeImg = document.getElementById('qrcode-img');
-    const errorDiv = document.getElementById('stellar-error-msg');
+  const STROOP = 10000000n;
+  const MAX = 100000n * STROOP;
 
-    if (!btn || !amountInput || !qrcodeContainer || !qrcodeImg || !errorDiv) return;
+  document.querySelectorAll(".xlm-box").forEach(box => {
+    box.querySelector(".xlm-btn").onclick = () => {
+      const msg = box.querySelector(".xlm-msg");
+      const qr = box.querySelector(".xlm-qr");
+      msg.textContent = "";
+      qr.hidden = true;
 
-    btn.addEventListener('click', () => {
-        errorDiv.style.display = "none";
-        errorDiv.innerText = "";
-        qrcodeContainer.style.display = "none";
+      try {
+        const amount = normalize(box.querySelector(".xlm-amount").value);
+        const destination = box.dataset.destination;
+        if (!/^G[A-Z2-7]{55}$/.test(destination)) throw Error("Invalid Stellar address");
 
-        const destination = "YOUR_STELLAR_ADDRESS_HERE"; 
-        
-        const amount = amountInput.value; 
-        if (!amount || parseFloat(amount) <= 0) {
-            errorDiv.innerText = "Error:Enter a number greater than 0";
-            errorDiv.style.display = "block";
-            return;
+        const p = new URLSearchParams({ destination, amount });
+        if (box.dataset.memo) {
+          p.set("memo", box.dataset.memo.slice(0, 28));
+          p.set("memo_type", "MEMO_TEXT");
         }
 
-        // memo up to 28 characters
-        const memo = "Tip"; 
-        
-        const stellarUri = `web+stellar:pay?destination=${destination}&amount=${amount}&memo=${encodeURIComponent(memo)}&memo_type=MEMO_TEXT`;
-        const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+        const uri = "web+stellar:pay?" + p.toString();
+        const mobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-        if (isMobile) {
-            window.location.href = stellarUri;
-        } else {
-            try {
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(stellarUri)}`;
-                qrcodeImg.src = qrUrl;
-                qrcodeContainer.style.display = "block"; 
-            } catch (err) {
-                errorDiv.innerText = "failed gen QR";
-                errorDiv.style.display = "block";
-                console.error(err);
-            }
-        }
-    });
+        if (mobile) location.href = uri;
+        else QRCode.toCanvas(qr, uri, { width: 220 }, err => {
+          if (err) throw err;
+          qr.hidden = false;
+        });
+      } catch (e) {
+        msg.textContent = e.message;
+      }
+    };
+  });
+
+  function normalize(v) {
+    v = String(v).trim().replace(/,/g, "");
+    if (!/^\d+(\.\d{1,7})?$/.test(v)) throw Error("0.0000001〜100000");
+    const [a, b = ""] = v.split(".");
+    const n = BigInt(a) * STROOP + BigInt((b + "0000000").slice(0, 7));
+    if (n < 1n || n > MAX) throw Error("0.0000001〜100000 XLM");
+    const i = n / STROOP, f = n % STROOP;
+    return f ? `${i}.${String(f).padStart(7, "0").replace(/0+$/, "")}` : String(i);
+  }
 })();
 </script>
